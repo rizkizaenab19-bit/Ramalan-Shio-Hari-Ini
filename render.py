@@ -45,11 +45,10 @@ def download_stok():
     ensure_dir(FOLDER_GAMBAR)
     ensure_dir(FOLDER_VIDEO_BANK)
 
-    # Cek jumlah saat ini
     gambar_ada = glob.glob(f"{FOLDER_GAMBAR}/*.jpg") + glob.glob(f"{FOLDER_GAMBAR}/*.jpeg") + glob.glob(f"{FOLDER_GAMBAR}/*.png")
     video_ada = glob.glob(f"{FOLDER_VIDEO_BANK}/*.mp4")
 
-    log(f"[Stok] Gambar: {len(gambar_ada)}, Video: {len(video_ada)}")
+    log(f"[Stok] Gambar saat ini: {len(gambar_ada)}, Video saat ini: {len(video_ada)}")
 
     # Download Gambar jika kurang
     if len(gambar_ada) < 10 and PIXABAY_API_KEY:
@@ -78,7 +77,6 @@ def download_stok():
             res = requests.get(url, headers=headers, timeout=15).json()
             for i, item in enumerate(res.get("videos", [])):
                 video_files = item.get("video_files", [])
-                # Cari resolusi HD/FHD
                 hd_files = [f for f in video_files if f.get("width", 0) >= 1280]
                 if not hd_files: continue
                 
@@ -90,6 +88,20 @@ def download_stok():
             log("[Stok] Berhasil mengunduh video.")
         except Exception as e:
             log(f"[Stok] Gagal download video: {e}")
+
+def _buat_gambar_fallback():
+    """Membuat 3 gambar solid color secara otomatis jika tidak ada gambar sama sekali."""
+    from PIL import Image
+    ensure_dir(FOLDER_GAMBAR)
+    colors = [(20, 10, 30), (30, 10, 20), (10, 20, 30)]
+    files = []
+    for i, color in enumerate(colors):
+        path = f"{FOLDER_GAMBAR}/fallback_{i}.jpg"
+        img = Image.new("RGB", (VIDEO_WIDTH, VIDEO_HEIGHT), color)
+        img.save(path)
+        files.append(path)
+    log("[Stok] Membuat gambar fallback darurat karena folder kosong.")
+    return files
 
 # ════════════════════════════════════════════════════════════
 # 3. MENGGABUNGKAN VIDEO (FFMPEG)
@@ -112,39 +124,37 @@ def render_video(info, audio_path="audio.mp3", output_path="final_video.mp4"):
         return False
 
     # 2. Siapkan aset gambar & video
-    gambar_files = glob.glob(f"{FOLDER_GAMBAR}/*.jpg") + glob.glob(f"{FOLDER_GAMBAR}/*.jpeg") + glob.glob(f"{FOLDER_GAMBAR}/*.png")
+    gambar_files = (
+        glob.glob(f"{FOLDER_GAMBAR}/*.jpg") + glob.glob(f"{FOLDER_GAMBAR}/*.jpeg") + glob.glob(f"{FOLDER_GAMBAR}/*.png") +
+        glob.glob("gambar_static/*.jpg") + glob.glob("gambar_static/*.jpeg") + glob.glob("gambar_static/*.png")
+    )
     video_files = glob.glob(f"{FOLDER_VIDEO_BANK}/*.mp4")
     
-    if not gambar_files and not video_files:
-        log("[Render] ERROR: Tidak ada aset gambar/video sama sekali!")
-        return False
+    # JIKA KOSONG SAMA SEKALI -> BUAT GAMBAR DARURAT
+    if len(gambar_files) == 0:
+        gambar_files = _buat_gambar_fallback()
 
     # Acak urutan
     random.shuffle(gambar_files)
     random.shuffle(video_files)
     
-    # Buat file concat sementara
     concat_file = "concat_list.txt"
     waktu_terkumpul = 0
     
     with open(concat_file, "w", encoding="utf-8") as f:
-        # Loop sampai durasi memenuhi audio + buffer 5 detik
         idx_img = 0
         idx_vid = 0
         
         while waktu_terkumpul < (durasi_audio + 5):
-            # Selang-seling antara video dan gambar
             pakai_video = (random.random() > 0.4) and (len(video_files) > 0)
             
             if pakai_video:
                 vid = video_files[idx_vid % len(video_files)]
                 idx_vid += 1
                 try:
-                    # Cek durasi video
                     cmd_v = ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", vid]
                     vdur = float(subprocess.check_output(cmd_v).decode().strip())
                     
-                    # Konversi video ke resolusi seragam (1920x1080) dan fps 30 agar concat lancar
                     tmp_vid = f"tmp_v_{idx_vid}.mp4"
                     cmd_conv = [
                         "ffmpeg", "-y", "-i", vid,
@@ -159,17 +169,16 @@ def render_video(info, audio_path="audio.mp3", output_path="final_video.mp4"):
                 except:
                     continue
             else:
+                # Karena kita sudah memastikan len(gambar_files) > 0, modulo ini aman
                 img = gambar_files[idx_img % len(gambar_files)]
                 idx_img += 1
-                img_dur = random.uniform(5.0, 8.0) # Tampilkan gambar 5-8 detik
+                img_dur = random.uniform(5.0, 8.0)
                 
-                # Buat video dari gambar dengan efek Ken Burns (Zoom/Pan lambat)
                 tmp_vid = f"tmp_i_{idx_img}.mp4"
                 
-                # Arah zoom random
                 zoom_dir = random.choice([
-                    "zoompan=z='min(zoom+0.0015,1.5)':d=300", # Zoom in lambat
-                    "zoompan=z='1.5-min((1.5-1)*(time/10),1.5-1)':d=300" # Zoom out lambat
+                    "zoompan=z='min(zoom+0.0015,1.5)':d=300",
+                    "zoompan=z='1.5-min((1.5-1)*(time/10),1.5-1)':d=300"
                 ])
                 
                 cmd_img = [
@@ -185,7 +194,6 @@ def render_video(info, audio_path="audio.mp3", output_path="final_video.mp4"):
 
     log(f"[Render] Menggabungkan klip visual (total {waktu_terkumpul:.2f}s)...")
     
-    # Concat semua klip visual menjadi satu video utuh
     visual_output = "visual_only.mp4"
     cmd_concat = [
         "ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", concat_file,
@@ -193,7 +201,6 @@ def render_video(info, audio_path="audio.mp3", output_path="final_video.mp4"):
     ]
     subprocess.run(cmd_concat, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     
-    # 3. Gabungkan Video Visual dengan Audio TTS
     log("[Render] Menggabungkan visual dengan audio narasi...")
     cmd_final = [
         "ffmpeg", "-y", 
@@ -201,18 +208,17 @@ def render_video(info, audio_path="audio.mp3", output_path="final_video.mp4"):
         "-i", audio_path, 
         "-c:v", "copy", 
         "-c:a", "aac", "-b:a", "192k",
-        "-shortest", # Potong video agar sesuai panjang audio
+        "-shortest", 
         output_path
     ]
     
-    # BGM / Musik latar (opsional, jika ada file bgm.mp3 di folder)
     if os.path.exists("bgm.mp3"):
         log("[Render] Menambahkan musik latar (BGM)...")
         cmd_final = [
             "ffmpeg", "-y", 
             "-i", visual_output, 
             "-i", audio_path, 
-            "-stream_loop", "-1", "-i", "bgm.mp3", # Loop BGM
+            "-stream_loop", "-1", "-i", "bgm.mp3",
             "-filter_complex", "[1:a]volume=1.0[a1];[2:a]volume=0.1[a2];[a1][a2]amix=inputs=2:duration=first[a]",
             "-map", "0:v", "-map", "[a]",
             "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
@@ -226,7 +232,6 @@ def render_video(info, audio_path="audio.mp3", output_path="final_video.mp4"):
         if os.path.exists(output_path):
             log(f"[Render] SUKSES! Video akhir tersimpan di: {output_path}")
             
-            # Bersihkan file temporary
             for f in glob.glob("tmp_*.mp4"): os.remove(f)
             if os.path.exists(concat_file): os.remove(concat_file)
             if os.path.exists(visual_output): os.remove(visual_output)
