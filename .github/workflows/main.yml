@@ -41,11 +41,8 @@ jobs:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           # Karena hanya 1 channel, kita set ID-nya fix jadi 1
           CHANNEL_ID: 1
-          
-          # YouTube Credentials (buat Secret dengan nama YT_CREDS saja, tanpa _1)
-          # BENAR
-          # BARU - ambil dari secret yang sama dengan repo emas
-          YT_CREDS_1: ${{ secrets.YOUTUBE_TOKEN_JSON }}
+         # BARU - BENAR
+          YOUTUBE_TOKEN_JSON: ${{ secrets.YOUTUBE_TOKEN_JSON }}
         run: |
           python main.py
 
