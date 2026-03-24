@@ -67,13 +67,22 @@ def download_stok():
     ensure_dir(FOLDER_GAMBAR)
     ensure_dir(FOLDER_VIDEO_BANK)
 
-    gambar_ada = (
-        glob.glob(f"{FOLDER_GAMBAR}/*.jpg") +
-        glob.glob(f"{FOLDER_GAMBAR}/*.jpeg") +
-        glob.glob(f"{FOLDER_GAMBAR}/*.png")
-    )
-    video_ada = glob.glob(f"{FOLDER_VIDEO_BANK}/*.mp4")
-    log(f"[Stok] Gambar: {len(gambar_ada)}, Video: {len(video_ada)}")
+# BARU - hitung gambar_static juga
+gambar_ada = (
+    glob.glob(f"{FOLDER_GAMBAR}/*.jpg") +
+    glob.glob(f"{FOLDER_GAMBAR}/*.jpeg") +
+    glob.glob(f"{FOLDER_GAMBAR}/*.png") +
+    glob.glob("gambar_static/*.jpg") +
+    glob.glob("gambar_static/*.jpeg") +
+    glob.glob("gambar_static/*.png")
+)
+video_ada = glob.glob(f"{FOLDER_VIDEO_BANK}/*.mp4")
+log(f"[Stok] Gambar: {len(gambar_ada)} (termasuk gambar_static), Video: {len(video_ada)}")
+
+# Hanya download dari Pixabay jika benar-benar kosong
+if len(gambar_ada) >= 5:
+    log("[Stok] Gambar sudah cukup, skip download Pixabay")
+    return
 
     if len(gambar_ada) < 10 and PIXABAY_API_KEY:
         log("[Stok] Download gambar dari Pixabay...")
