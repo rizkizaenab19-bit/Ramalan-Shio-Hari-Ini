@@ -11,12 +11,7 @@ on:
 jobs:
   build-and-upload:
     runs-on: ubuntu-latest
-    
-    # Menjalankan 5 channel sekaligus menggunakan matrix
-    strategy:
-      fail-fast: false
-      matrix:
-        channel_id: 1
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
@@ -36,7 +31,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests pillow edge-tts google-api-python-client google-auth-oauthlib google-auth-httplib2
 
-      - name: Run Script Channel ${{ matrix.channel_id }}
+      - name: Run Script Channel Utama
         env:
           # API Keys Global
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -44,15 +39,11 @@ jobs:
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
           PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
           
-          # Channel Configuration ID
-          CHANNEL_ID: ${{ matrix.channel_id }}
+          # Karena hanya 1 channel, kita set ID-nya fix jadi 1
+          CHANNEL_ID: 1
           
-          # YouTube Credentials dinamis (sesuai matrix ID)
-          YT_CREDS_1: ${{ secrets.YT_CREDS_1 }}
-          YT_CREDS_2: ${{ secrets.YT_CREDS_2 }}
-          YT_CREDS_3: ${{ secrets.YT_CREDS_3 }}
-          YT_CREDS_4: ${{ secrets.YT_CREDS_4 }}
-          YT_CREDS_5: ${{ secrets.YT_CREDS_5 }}
+          # YouTube Credentials (buat Secret dengan nama YT_CREDS saja, tanpa _1)
+          YT_CREDS_1: ${{ secrets.YT_CREDS }}
         run: |
           python main.py
 
@@ -60,7 +51,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v3
         with:
-          name: channel-${{ matrix.channel_id }}-logs
+          name: channel-logs
           path: |
             narasi.txt
             ffmpeg_log.txt
