@@ -43,7 +43,8 @@ jobs:
           CHANNEL_ID: 1
           
           # YouTube Credentials (buat Secret dengan nama YT_CREDS saja, tanpa _1)
-          YT_CREDS_1: ${{ secrets.YT_CREDS }}
+          # BENAR
+          YT_CREDS_1: ${{ secrets.YT_CREDS_1 }}}}
         run: |
           python main.py
 
