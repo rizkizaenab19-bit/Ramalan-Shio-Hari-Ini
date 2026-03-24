@@ -10,30 +10,25 @@ from config import (
 )
 from utils import log, ensure_dir
 
-# Durasi tampil per gambar (detik)
 DURASI_GAMBAR_MIN = 5.0
 DURASI_GAMBAR_MAX = 8.0
 
-# Transisi xfade yang tersedia (semuanya cepat di FFmpeg)
 XFADE_EFFECTS = [
     "fade", "fadeblack", "fadegrays",
     "slideright", "slideleft", "slideup",
     "dissolve", "smoothleft", "smoothright",
 ]
 
-# Color grade per tipe konten (memberi nuansa dramatis)
 COLOR_GRADE = {
     "shio":   "eq=saturation=1.4:contrast=1.1:brightness=0.02,hue=h=5",
     "zodiak": "eq=saturation=1.3:contrast=1.15:brightness=0.01,hue=h=-5",
 }
 
-# Variasi zoom statis per klip (beda tiap gambar agar tidak monoton)
 ZOOM_LEVELS = [
     f"scale={int(VIDEO_WIDTH*1.00)}:{int(VIDEO_HEIGHT*1.00)},crop={VIDEO_WIDTH}:{VIDEO_HEIGHT}",
     f"scale={int(VIDEO_WIDTH*1.05)}:{int(VIDEO_HEIGHT*1.05)},crop={VIDEO_WIDTH}:{VIDEO_HEIGHT}",
     f"scale={int(VIDEO_WIDTH*1.10)}:{int(VIDEO_HEIGHT*1.10)},crop={VIDEO_WIDTH}:{VIDEO_HEIGHT}",
     f"scale={int(VIDEO_WIDTH*1.15)}:{int(VIDEO_HEIGHT*1.15)},crop={VIDEO_WIDTH}:{VIDEO_HEIGHT}",
-    # Crop dari sudut berbeda (simulasi pan statis)
     f"scale={int(VIDEO_WIDTH*1.10)}:{int(VIDEO_HEIGHT*1.10)},crop={VIDEO_WIDTH}:{VIDEO_HEIGHT}:0:0",
     f"scale={int(VIDEO_WIDTH*1.10)}:{int(VIDEO_HEIGHT*1.10)},crop={VIDEO_WIDTH}:{VIDEO_HEIGHT}:iw-ow:ih-oh",
     f"scale={int(VIDEO_WIDTH*1.10)}:{int(VIDEO_HEIGHT*1.10)},crop={VIDEO_WIDTH}:{VIDEO_HEIGHT}:iw-ow:0",
@@ -54,6 +49,7 @@ def buat_audio(narasi, output_path="audio.mp3"):
         if os.path.exists(output_path):
             log(f"[TTS] OK – {os.path.getsize(output_path):,} bytes")
             return True
+        log("[TTS] Gagal: file tidak ditemukan")
         return False
     except Exception as e:
         log(f"[TTS] Error: {e}")
@@ -67,24 +63,20 @@ def download_stok():
     ensure_dir(FOLDER_GAMBAR)
     ensure_dir(FOLDER_VIDEO_BANK)
 
-# BARU - hitung gambar_static juga
-gambar_ada = (
-    glob.glob(f"{FOLDER_GAMBAR}/*.jpg") +
-    glob.glob(f"{FOLDER_GAMBAR}/*.jpeg") +
-    glob.glob(f"{FOLDER_GAMBAR}/*.png") +
-    glob.glob("gambar_static/*.jpg") +
-    glob.glob("gambar_static/*.jpeg") +
-    glob.glob("gambar_static/*.png")
-)
-video_ada = glob.glob(f"{FOLDER_VIDEO_BANK}/*.mp4")
-log(f"[Stok] Gambar: {len(gambar_ada)} (termasuk gambar_static), Video: {len(video_ada)}")
+    gambar_ada = (
+        glob.glob(f"{FOLDER_GAMBAR}/*.jpg") +
+        glob.glob(f"{FOLDER_GAMBAR}/*.jpeg") +
+        glob.glob(f"{FOLDER_GAMBAR}/*.png") +
+        glob.glob("gambar_static/*.jpg") +
+        glob.glob("gambar_static/*.jpeg") +
+        glob.glob("gambar_static/*.png")
+    )
+    video_ada = glob.glob(f"{FOLDER_VIDEO_BANK}/*.mp4")
+    log(f"[Stok] Gambar: {len(gambar_ada)} (termasuk gambar_static), Video: {len(video_ada)}")
 
-# Hanya download dari Pixabay jika benar-benar kosong
-if len(gambar_ada) >= 5:
-    log("[Stok] Gambar sudah cukup, skip download Pixabay")
-    return
-
-    if len(gambar_ada) < 10 and PIXABAY_API_KEY:
+    if len(gambar_ada) >= 5:
+        log("[Stok] Gambar sudah cukup, skip download Pixabay")
+    elif PIXABAY_API_KEY:
         log("[Stok] Download gambar dari Pixabay...")
         keyword = random.choice(KATA_KUNCI_GAMBAR)
         try:
@@ -102,6 +94,8 @@ if len(gambar_ada) >= 5:
             log("[Stok] Gambar Pixabay OK")
         except Exception as e:
             log(f"[Stok] Gagal Pixabay: {e}")
+    else:
+        log("[Stok] PIXABAY_API_KEY kosong, skip download gambar")
 
     if len(video_ada) < 4 and PEXELS_API_KEY:
         log("[Stok] Download video dari Pexels...")
@@ -113,13 +107,16 @@ if len(gambar_ada) >= 5:
             ).json().get("videos", [])
             for i, item in enumerate(videos):
                 files = [f for f in item.get("video_files", []) if f.get("width", 0) >= 1280]
-                if not files: continue
+                if not files:
+                    continue
                 r = requests.get(files[0]["link"], timeout=30)
                 with open(f"{FOLDER_VIDEO_BANK}/pex_{int(time.time())}_{i}.mp4", "wb") as f:
                     f.write(r.content)
             log("[Stok] Video Pexels OK")
         except Exception as e:
             log(f"[Stok] Gagal Pexels: {e}")
+    elif not PEXELS_API_KEY:
+        log("[Stok] PEXELS_API_KEY kosong, skip download video")
 
 # ════════════════════════════════════════════════════════════
 # 3. FALLBACK GAMBAR DARURAT
@@ -148,38 +145,34 @@ def _buat_gambar_fallback():
             )
         img.save(path, "JPEG", quality=90)
         files.append(path)
-    log(f"[Stok] {len(files)} gambar fallback dibuat.")
+    log(f"[Stok] {len(files)} gambar fallback darurat dibuat.")
     return files
 
 # ════════════════════════════════════════════════════════════
-# 4. HELPER: DURASI
+# 4. HELPER DURASI
 # ════════════════════════════════════════════════════════════
 def _durasi(path):
     try:
         out = subprocess.check_output([
             "ffprobe", "-v", "error",
             "-show_entries", "format=duration",
-            "-of", "default=noprint_wrappers=1:nokey=1", path
+            "-of", "default=noprint_wrappers=1:nokey=1",
+            path
         ]).decode().strip()
         return float(out)
     except:
         return 0.0
 
 # ════════════════════════════════════════════════════════════
-# 5. BUAT KLIP DARI GAMBAR
-#    Zoom statis + color grade — CEPAT tapi tetap hidup
+# 5. KLIP DARI GAMBAR (zoom statis + color grade)
 # ════════════════════════════════════════════════════════════
 def _klip_dari_gambar(img_path, durasi, output, zoom_filter, grade_filter):
     vf = (
-        # 1. Scale besar dulu agar crop tidak blur
         f"scale={int(VIDEO_WIDTH*1.2)}:{int(VIDEO_HEIGHT*1.2)}"
         f":force_original_aspect_ratio=increase,"
-        # 2. Zoom & posisi crop statis
         f"{zoom_filter},"
-        # 3. Pastikan resolusi tepat
         f"scale={VIDEO_WIDTH}:{VIDEO_HEIGHT},"
         f"setsar=1,"
-        # 4. Color grade zodiak/shio
         f"{grade_filter}"
     )
     cmd = [
@@ -199,8 +192,7 @@ def _klip_dari_gambar(img_path, durasi, output, zoom_filter, grade_filter):
     return os.path.exists(output)
 
 # ════════════════════════════════════════════════════════════
-# 6. BUAT KLIP DARI VIDEO STOK
-#    Scale + color grade — VIDEO STOK SUDAH BERGERAK SENDIRI
+# 6. KLIP DARI VIDEO STOK
 # ════════════════════════════════════════════════════════════
 def _klip_dari_video(vid_path, output, grade_filter):
     vf = (
@@ -222,26 +214,19 @@ def _klip_dari_video(vid_path, output, grade_filter):
 
 # ════════════════════════════════════════════════════════════
 # 7. GABUNG KLIP DENGAN XFADE TRANSITION
-#    Ini yang membuat video tampak profesional!
 # ════════════════════════════════════════════════════════════
 def _gabung_dengan_xfade(klip_list, durasi_list, output):
-    """
-    Gabungkan semua klip dengan transisi xfade crossfade.
-    Setiap perpindahan klip ada efek fade/slide yang halus.
-    """
     if len(klip_list) == 1:
         import shutil
         shutil.copy(klip_list[0], output)
         return os.path.exists(output)
 
-    DURASI_TRANSISI = 1.0  # detik transisi antar klip
+    DURASI_TRANSISI = 1.0
 
-    # Build FFmpeg filter_complex untuk xfade berantai
     inputs = []
     for k in klip_list:
         inputs += ["-i", k]
 
-    # Bangun chain xfade
     filter_parts = []
     offset = 0.0
     prev_label = "[0:v]"
@@ -249,7 +234,7 @@ def _gabung_dengan_xfade(klip_list, durasi_list, output):
     for i in range(1, len(klip_list)):
         offset += durasi_list[i-1] - DURASI_TRANSISI
         efek = random.choice(XFADE_EFFECTS)
-        next_label = f"[v{i}]" if i < len(klip_list)-1 else "[vout]"
+        next_label = f"[v{i}]" if i < len(klip_list) - 1 else "[vout]"
         filter_parts.append(
             f"{prev_label}[{i}:v]xfade=transition={efek}"
             f":duration={DURASI_TRANSISI}:offset={offset:.3f}{next_label}"
@@ -257,14 +242,13 @@ def _gabung_dengan_xfade(klip_list, durasi_list, output):
         prev_label = f"[v{i}]"
 
     filter_complex = ";".join(filter_parts)
-    out_label = "[vout]"
 
     cmd = (
         ["ffmpeg", "-y"] +
         inputs +
         [
             "-filter_complex", filter_complex,
-            "-map", out_label,
+            "-map", "[vout]",
             "-c:v", "libx264",
             "-preset", "ultrafast",
             "-crf", "28",
@@ -274,18 +258,13 @@ def _gabung_dengan_xfade(klip_list, durasi_list, output):
     )
 
     try:
-        result = subprocess.run(
-            cmd,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            timeout=300
-        )
+        subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=300)
         if os.path.exists(output):
             return True
     except subprocess.TimeoutExpired:
         log("[Render] xfade timeout, fallback ke concat biasa...")
 
-    # Fallback: concat tanpa transisi jika xfade gagal
+    # Fallback concat tanpa transisi
     concat_file = "concat_xfade_fallback.txt"
     with open(concat_file, "w") as f:
         for k in klip_list:
@@ -310,7 +289,7 @@ def render_video(info, audio_path="audio.mp3", output_path="final_video.mp4"):
         return False
     log(f"[Render] Durasi audio: {durasi_audio:.1f}s ({durasi_audio/60:.1f} menit)")
 
-    # Kumpulkan aset visual
+    # Kumpulkan semua aset visual
     gambar_files = (
         glob.glob(f"{FOLDER_GAMBAR}/*.jpg") +
         glob.glob(f"{FOLDER_GAMBAR}/*.jpeg") +
@@ -321,16 +300,15 @@ def render_video(info, audio_path="audio.mp3", output_path="final_video.mp4"):
     )
     video_files = glob.glob(f"{FOLDER_VIDEO_BANK}/*.mp4")
 
+    # Fallback darurat jika benar-benar kosong
     if not gambar_files:
         gambar_files = _buat_gambar_fallback()
 
     random.shuffle(gambar_files)
     random.shuffle(video_files)
 
-    # Ambil color grade sesuai tipe konten
     grade = COLOR_GRADE.get(TIPE_KONTEN, COLOR_GRADE["shio"])
 
-    # Buat klip satu per satu
     klip_list   = []
     durasi_list = []
     waktu       = 0.0
@@ -338,8 +316,7 @@ def render_video(info, audio_path="audio.mp3", output_path="final_video.mp4"):
 
     log("[Render] Membuat klip individual...")
     while waktu < (durasi_audio + 5) and idx < 200:
-        # Prioritaskan video stok (60% peluang) karena sudah bergerak
-        pakai_video = video_files and (random.random() > 0.4)
+        pakai_video = bool(video_files) and (random.random() > 0.4)
         out = f"klip_{idx:04d}.mp4"
 
         if pakai_video:
@@ -354,7 +331,7 @@ def render_video(info, audio_path="audio.mp3", output_path="final_video.mp4"):
         else:
             src  = gambar_files[idx % len(gambar_files)]
             dur  = random.uniform(DURASI_GAMBAR_MIN, DURASI_GAMBAR_MAX)
-            zoom = random.choice(ZOOM_LEVELS)  # Zoom statis beda tiap gambar
+            zoom = random.choice(ZOOM_LEVELS)
             if _klip_dari_gambar(src, dur, out, zoom, grade):
                 klip_list.append(out)
                 durasi_list.append(dur)
@@ -367,26 +344,22 @@ def render_video(info, audio_path="audio.mp3", output_path="final_video.mp4"):
         log("[Render] Tidak ada klip yang berhasil dibuat!")
         return False
 
-    log(f"[Render] {len(klip_list)} klip siap. Gabung dengan xfade...")
+    log(f"[Render] {len(klip_list)} klip siap, {waktu:.1f}s. Gabung dengan xfade...")
 
-    # Gabung semua klip dengan transisi xfade
     visual = "visual_only.mp4"
+    BATCH  = 15
 
-    # Jika klip terlalu banyak (>30), xfade filter bisa kompleks
-    # Bagi dulu jadi batch maks 15 klip, lalu concat hasilnya
-    BATCH = 15
     if len(klip_list) > BATCH:
-        log(f"[Render] Klip >15, proses xfade per batch {BATCH}...")
+        log(f"[Render] Klip >{BATCH}, proses xfade per batch...")
         batch_results = []
         for b_start in range(0, len(klip_list), BATCH):
-            b_klip = klip_list[b_start:b_start+BATCH]
-            b_dur  = durasi_list[b_start:b_start+BATCH]
+            b_klip = klip_list[b_start:b_start + BATCH]
+            b_dur  = durasi_list[b_start:b_start + BATCH]
             b_out  = f"batch_{b_start:04d}.mp4"
             _gabung_dengan_xfade(b_klip, b_dur, b_out)
             if os.path.exists(b_out):
                 batch_results.append(b_out)
 
-        # Concat semua batch
         concat_file = "concat_batch.txt"
         with open(concat_file, "w") as f:
             for b in batch_results:
@@ -395,9 +368,11 @@ def render_video(info, audio_path="audio.mp3", output_path="final_video.mp4"):
             "ffmpeg", "-y", "-f", "concat", "-safe", "0",
             "-i", concat_file, "-c", "copy", visual
         ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        if os.path.exists(concat_file): os.remove(concat_file)
+        if os.path.exists(concat_file):
+            os.remove(concat_file)
         for b in batch_results:
-            if os.path.exists(b): os.remove(b)
+            if os.path.exists(b):
+                os.remove(b)
     else:
         _gabung_dengan_xfade(klip_list, durasi_list, visual)
 
@@ -407,15 +382,6 @@ def render_video(info, audio_path="audio.mp3", output_path="final_video.mp4"):
 
     # Gabung visual + audio
     log("[Render] Menggabungkan visual + audio...")
-    cmd_final = [
-        "ffmpeg", "-y",
-        "-i", visual,
-        "-i", audio_path,
-        "-c:v", "copy",
-        "-c:a", "aac", "-b:a", "192k",
-        "-shortest",
-        output_path,
-    ]
 
     if os.path.exists("bgm.mp3"):
         log("[Render] Tambahkan BGM...")
@@ -430,6 +396,16 @@ def render_video(info, audio_path="audio.mp3", output_path="final_video.mp4"):
             "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
             "-shortest", output_path,
         ]
+    else:
+        cmd_final = [
+            "ffmpeg", "-y",
+            "-i", visual,
+            "-i", audio_path,
+            "-c:v", "copy",
+            "-c:a", "aac", "-b:a", "192k",
+            "-shortest",
+            output_path,
+        ]
 
     try:
         with open(FFMPEG_LOG, "w") as lf:
@@ -437,11 +413,11 @@ def render_video(info, audio_path="audio.mp3", output_path="final_video.mp4"):
         if os.path.exists(output_path):
             size_mb = os.path.getsize(output_path) / 1024 / 1024
             log(f"[Render] SUKSES! {output_path} ({size_mb:.1f} MB)")
-            # Bersihkan
             for k in klip_list:
-                if os.path.exists(k): os.remove(k)
-            for f in [visual]:
-                if os.path.exists(f): os.remove(f)
+                if os.path.exists(k):
+                    os.remove(k)
+            if os.path.exists(visual):
+                os.remove(visual)
             return output_path
     except subprocess.CalledProcessError as e:
         log(f"[Render] FFmpeg error: {e}")
