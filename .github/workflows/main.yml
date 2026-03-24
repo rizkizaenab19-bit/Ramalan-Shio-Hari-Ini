@@ -49,7 +49,7 @@ jobs:
 
       - name: Archive Artifacts (Optional Debugging)
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: channel-logs
           path: |
