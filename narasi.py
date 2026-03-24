@@ -146,7 +146,10 @@ def _build_prompt(info):
         f"- JANGAN gunakan emoji, simbol bintang (*), atau markdown\n"
         f"- JANGAN gunakan tanda bintang atau tanda pagar\n"
         f"- Natural saat dibaca/didengar untuk text-to-speech\n"
-        f"- WAJIB minimal 900 kata, maksimal 1100 kata\n"
+        # BARU - lebih singkat, render lebih cepat
+        f"- WAJIB minimal 400 kata, maksimal 550 kata\n"
+        f"- Durasi video target: 4-5 menit saja\n"
+        f"- Setiap {tipe} cukup 2 kalimat singkat saja\n"
     )
 
 # ════════════════════════════════════════════════════════════
