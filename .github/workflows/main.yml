@@ -44,7 +44,8 @@ jobs:
           
           # YouTube Credentials (buat Secret dengan nama YT_CREDS saja, tanpa _1)
           # BENAR
-          YT_CREDS_1: ${{ secrets.YT_CREDS_1 }}}}
+          # BARU - ambil dari secret yang sama dengan repo emas
+          YT_CREDS_1: ${{ secrets.YOUTUBE_TOKEN_JSON }}
         run: |
           python main.py
 
