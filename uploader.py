@@ -11,7 +11,7 @@ from config import YOUTUBE_CATEGORY, YOUTUBE_TAGS, CHANNEL_ID
 
 # Map Channel ID ke nama kredensial di GitHub Secrets
 # Pastikan di GitHub Secrets ada: YT_CREDS_1, YT_CREDS_2, dst.
-CRED_ENV_NAME = f"YT_CREDS_{CHANNEL_ID}"
+CRED_ENV_NAME = "YOUTUBE_TOKEN_JSON"
 
 def get_authenticated_service():
     """Mengambil kredensial dari Environment Variable dan membuat service YouTube."""
