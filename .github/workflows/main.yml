@@ -16,8 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        channel_id: [1, 2, 3, 4, 5]
-
+        channel_id: 1
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
