@@ -40,7 +40,7 @@ def _tgl_id(x):
     return x
 
 # ════════════════════════════════════════════════════════════
-# MODEL LIST (Semua aktif per 2026)
+# MODEL LIST
 # ════════════════════════════════════════════════════════════
 GEMINI_MODELS = [
     "gemini-2.5-flash",
@@ -68,17 +68,17 @@ OPENROUTER_MODELS = [
 ]
 
 # ════════════════════════════════════════════════════════════
-# PROMPT BUILDER
+# PROMPT BUILDER (CLICKBAIT VERSION)
 # ════════════════════════════════════════════════════════════
 def _build_prompt(info):
-    tgl           = _tgl_id(info["tanggal"])
-    waktu         = info["waktu"]
-    tipe          = info["tipe_label"]
-    tanda_list    = info["tanda_list"]
-    tanda_terbaik = info["tanda_terbaik"]
+    tgl              = _tgl_id(info["tanggal"])
+    waktu            = info["waktu"]
+    tipe             = info["tipe_label"]
+    tanda_list       = info["tanda_list"]
+    tanda_terbaik    = info["tanda_terbaik"]
     peruntungan_hari = info["peruntungan_hari"]
-    warna_hari    = info["warna_hari"]
-    angka_hari    = info["angka_hari"]
+    warna_hari       = info["warna_hari"]
+    angka_hari       = info["angka_hari"]
 
     ringkasan = ""
     for tanda, r in info["ramalan"].items():
@@ -92,33 +92,22 @@ def _build_prompt(info):
             f"  Kesehatan: {r['kesehatan']}\n"
         )
 
-    gaya_map = {
-        "mistis_bijak": (
-            "Gunakan gaya bahasa MISTIS dan BIJAK seperti seorang ahli astrologi yang bijaksana. "
-            "Penuh dengan kata-kata positif, afirmatif, dan memberi harapan."
-        ),
-        "santai_edukatif": (
-            "Gunakan gaya bahasa SANTAI dan EDUKATIF. "
-            "Ramah, mudah dipahami, sisipkan penjelasan singkat tentang makna zodiak."
-        ),
-        "berita_singkat": (
-            "Gunakan gaya bahasa BERITA SINGKAT seperti reporter TV. "
-            "Padat, jelas, namun tetap penuh energi positif."
-        ),
-        "energik_motivatif": (
-            "Gunakan gaya bahasa ENERGIK dan MOTIVATIF. "
-            "Semangati penonton dengan afirmasi positif dan kata-kata pemberdayaan diri."
-        ),
-        "percakapan_akrab": (
-            "Gunakan gaya bahasa PERCAKAPAN AKRAB seperti ngobrol dengan sahabat. "
-            "Santai, natural, dan penuh semangat positif."
-        ),
-    }
-    gaya_instruksi = gaya_map.get(NARASI_GAYA, gaya_map["santai_edukatif"])
-
     return (
-        f'Kamu adalah narrator video YouTube channel "{NAMA_CHANNEL}".\n\n'
-        f"{gaya_instruksi}\n\n"
+        f'Kamu adalah narrator video YouTube channel "{NAMA_CHANNEL}" yang ahli membuat konten VIRAL dan CLICKBAIT.\n\n'
+        f"INSTRUKSI UTAMA — WAJIB DIIKUTI:\n"
+        f"1. Buat JUDUL yang SANGAT CLICKBAIT, mengandung unsur kejutan, rasa ingin tahu, atau ancaman/peluang besar.\n"
+        f"   Contoh pola judul bagus:\n"
+        f"   - 'HATI-HATI! {tipe} Ini Akan Mengalami Kejutan BESAR Hari Ini!'\n"
+        f"   - 'LUAR BIASA! Rezeki Nomplok Datang Tiba-tiba untuk {tipe} Ini!'\n"
+        f"   - 'WASPADA! 3 {tipe} Ini Harus Ekstra Hati-hati {tgl}'\n"
+        f"   - 'BOCORAN SEMESTA: {tipe} {tanda_terbaik} Dipilih Alam Semesta Hari Ini!'\n"
+        f"   - 'SHOCK! Peruntungan {tipe} Ini Berubah Drastis Mulai Hari Ini!'\n\n"
+        f"2. Narasi harus DRAMATIS, EMOSIONAL, dan MENGHIPNOTIS seperti konten YouTube viral.\n"
+        f"   - Gunakan kalimat pendek dan menghentak di awal\n"
+        f"   - Tambahkan JEDA DRAMATIS: 'Dan yang paling mengejutkan...', 'Tapi tunggu dulu...'\n"
+        f"   - Buat penonton penasaran dengan cliffhanger\n"
+        f"   - Sisipkan ajakan interaksi: 'Tulis di kolom komentar...', 'Tonton sampai habis karena...'\n"
+        f"   - Gunakan kata-kata kuat: LUAR BIASA, MENGEJUTKAN, DAHSYAT, WASPADA, BOCORAN, RAHASIA\n\n"
         f"DATA RAMALAN {tipe.upper()} HARI INI:\n"
         f"- Tanggal           : {tgl}\n"
         f"- Waktu             : {waktu}\n"
@@ -126,30 +115,24 @@ def _build_prompt(info):
         f"- Peruntungan Hari  : {peruntungan_hari}\n"
         f"- Warna Hoki Hari   : {warna_hari}\n"
         f"- Angka Hoki Hari   : {angka_hari}\n\n"
-        f"DATA LENGKAP RAMALAN TIAP {tipe.upper()}:\n"
+        f"DATA LENGKAP TIAP {tipe.upper()}:\n"
         f"{ringkasan}\n"
-        f"TUGAS:\n"
-        f"1. Buat JUDUL video menarik (maksimal 80 karakter)\n"
-        f"2. Buat NARASI video berdurasi 6-8 menit (900-1100 kata)\n\n"
         f"FORMAT OUTPUT (WAJIB IKUTI PERSIS):\n"
-        f"JUDUL: [judul video di sini]\n"
+        f"JUDUL: [judul clickbait maksimal 90 karakter]\n"
         f"NARASI:\n"
-        f"[narasi lengkap di sini]\n\n"
+        f"[narasi lengkap]\n\n"
         f"ATURAN NARASI:\n"
-        f'- Kalimat pertama WAJIB: "Halo {SAPAAN},"\n'
-        f"- Sebutkan tanggal dan tema hari ini\n"
-        f"- Bacakan ramalan untuk SEMUA {len(tanda_list)} {tipe}\n"
-        f"- Setiap {tipe} mendapat porsi yang cukup (minimal 4 kalimat)\n"
-        f"- Sampaikan afirmasi, cinta, karir, keuangan, kesehatan setiap {tipe}\n"
-        f"- Sebutkan warna hoki dan angka hoki masing-masing {tipe}\n"
-        f"- Tutup dengan pesan inspiratif dan ajakan subscribe & like\n"
-        f"- JANGAN gunakan emoji, simbol bintang (*), atau markdown\n"
-        f"- JANGAN gunakan tanda bintang atau tanda pagar\n"
-        f"- Natural saat dibaca/didengar untuk text-to-speech\n"
-        # BARU - lebih singkat, render lebih cepat
-        f"- WAJIB minimal 400 kata, maksimal 550 kata\n"
-        f"- Durasi video target: 4-5 menit saja\n"
-        f"- Setiap {tipe} cukup 2 kalimat singkat saja\n"
+        f'- Kalimat PERTAMA wajib menghentak, contoh: "STOP! Sebelum kamu memulai harimu hari ini, dengarkan ini baik-baik..."\n'
+        f"- Langsung sebut tanggal dan tema dramatis hari ini\n"
+        f"- Setiap {tipe} dibahas dengan nada dramatis dan emosional\n"
+        f"- Tambahkan kata KEJUTAN atau PERINGATAN untuk {tipe} bintangnya rendah\n"
+        f"- Tambahkan kata SELAMAT atau LUAR BIASA untuk {tipe} bintangnya tinggi\n"
+        f"- Setiap {tipe} wajib ada: afirmasi, cinta, karir, keuangan, kesehatan, warna hoki, angka hoki\n"
+        f"- Di tengah video sisipkan: 'Tonton terus, karena di bagian akhir ada pesan RAHASIA dari semesta...'\n"
+        f"- Tutup dramatis + paksa subscribe: 'Jika kamu tidak subscribe sekarang, kamu akan melewatkan ramalan PENTING besok!'\n"
+        f"- JANGAN pakai emoji, tanda bintang (*), atau markdown\n"
+        f"- Natural saat dibaca untuk text-to-speech\n"
+        f"- WAJIB minimal 500 kata, maksimal 650 kata\n"
     )
 
 # ════════════════════════════════════════════════════════════
@@ -170,9 +153,9 @@ def _call_gemini(prompt):
                     json={
                         "contents": [{"parts": [{"text": prompt}]}],
                         "generationConfig": {
-                            "temperature": 0.85,
+                            "temperature": 0.9,
                             "maxOutputTokens": 4000,
-                            "topP": 0.9,
+                            "topP": 0.95,
                         },
                     },
                     timeout=60,
@@ -186,7 +169,7 @@ def _call_gemini(prompt):
                     log(f" -> 503, tunggu {wait}s...")
                     time.sleep(wait); continue
                 if resp.status_code == 404:
-                    log(f" -> 404 model tidak ditemukan, skip ke model lain")
+                    log(f" -> 404 model tidak ditemukan, skip")
                     break
                 resp.raise_for_status()
                 data = resp.json()
@@ -207,8 +190,7 @@ def _call_gemini(prompt):
     return None
 
 # ════════════════════════════════════════════════════════════
-# CALL GROQ (Fallback ke-2, GRATIS & SANGAT CEPAT)
-# Daftar gratis: https://console.groq.com
+# CALL GROQ
 # ════════════════════════════════════════════════════════════
 def _call_groq(prompt):
     if not GROQ_API_KEY:
@@ -228,7 +210,7 @@ def _call_groq(prompt):
                         "model": model,
                         "messages": [{"role": "user", "content": prompt}],
                         "max_tokens": 4000,
-                        "temperature": 0.85,
+                        "temperature": 0.9,
                     },
                     timeout=60,
                 )
@@ -252,7 +234,7 @@ def _call_groq(prompt):
     return None
 
 # ════════════════════════════════════════════════════════════
-# CALL OPENROUTER (Fallback ke-3)
+# CALL OPENROUTER
 # ════════════════════════════════════════════════════════════
 def _call_openrouter(prompt):
     if not OPENROUTER_API_KEY:
@@ -274,7 +256,7 @@ def _call_openrouter(prompt):
                         "model": model,
                         "messages": [{"role": "user", "content": prompt}],
                         "max_tokens": 4000,
-                        "temperature": 0.85,
+                        "temperature": 0.9,
                     },
                     timeout=80,
                 )
@@ -330,7 +312,7 @@ def _parse_output(raw):
     return judul, narasi_bersih
 
 # ════════════════════════════════════════════════════════════
-# FALLBACK TEMPLATE LOKAL (Jika semua AI gagal)
+# FALLBACK TEMPLATE LOKAL (CLICKBAIT VERSION)
 # ════════════════════════════════════════════════════════════
 def _build_fallback(info):
     tgl              = _tgl_id(info["tanggal"])
@@ -343,68 +325,67 @@ def _build_fallback(info):
     ramalan          = info["ramalan"]
 
     openings = [
-        f"Halo {SAPAAN}, selamat datang kembali di channel {NAMA_CHANNEL}. Hari ini, {tgl}, kami hadir membawakan ramalan {tipe} lengkap yang dipenuhi dengan energi positif, afirmasi yang membangun, dan petunjuk praktis untuk menjalani hari dengan lebih maksimal.",
-        f"Halo {SAPAAN}, salam hangat dari channel {NAMA_CHANNEL}. Di hari yang indah ini, {tgl}, mari kita buka diri terhadap energi positif yang mengalir melalui ramalan {tipe} hari ini.",
-        f"Halo {SAPAAN}, terima kasih telah setia bersama channel {NAMA_CHANNEL}. Pada hari yang penuh berkah ini, {tgl}, kami akan memandu perjalananmu melalui ramalan {tipe} yang memotivasi dan menginspirasi.",
-        f"Halo {SAPAAN}, selamat datang di channel {NAMA_CHANNEL}. Hari ini, {tgl}, semesta telah menyiapkan pesan-pesan indah yang tersimpan dalam ramalan {tipe} khusus untukmu.",
-        f"Halo {SAPAAN}, salam penuh semangat dari tim {NAMA_CHANNEL}. Di hari yang cerah ini, {tgl}, kami siap membawakan ramalan {tipe} yang lengkap dan terperinci sehingga kamu bisa menjalani hari dengan keyakinan yang lebih besar.",
+        f"STOP! Sebelum kamu memulai harimu hari ini, {tgl}, dengarkan pesan penting ini baik-baik. Semesta sedang mengirimkan sinyal yang tidak boleh kamu abaikan. Di channel {NAMA_CHANNEL}, hari ini kami membawa bocoran ramalan {tipe} yang akan mengubah cara pandangmu tentang hari ini!",
+        f"PERINGATAN dari alam semesta! Hari ini, {tgl}, ada pergerakan energi besar yang akan mempengaruhi seluruh {tipe} tanpa terkecuali. Sebelum kamu melangkah keluar rumah, simak dulu ramalan lengkap dari {NAMA_CHANNEL} ini. Jangan sampai kamu menyesal karena melewatkannya!",
+        f"Hai, kamu yang sedang menonton ini! Tahukah kamu bahwa hari ini, {tgl}, semesta sedang menyiapkan sesuatu yang LUAR BIASA untuk beberapa {tipe}? Dan mungkin kamu adalah salah satunya! Tonton video ini sampai habis karena di bagian akhir ada pesan rahasia yang sayang untuk dilewatkan!",
+        f"BOCORAN SEMESTA hari ini, {tgl}! Channel {NAMA_CHANNEL} hadir membawakan ramalan {tipe} terlengkap yang akan membuatmu tercengang. Ada {tipe} yang akan menerima rezeki nomplok hari ini, dan ada juga yang harus ekstra waspada. Kamu masuk yang mana? Simak sampai selesai!",
+        f"Kamu harus dengar ini sekarang! Hari ini, {tgl}, getaran kosmik sedang bergerak dengan cara yang sangat tidak biasa. {NAMA_CHANNEL} telah menganalisis pergerakan bintang dan menghasilkan ramalan {tipe} yang sangat akurat untuk harimu. Bersiaplah untuk terkejut!",
     ]
 
     intro_hari = [
-        f"Sebelum kita masuk ke ramalan masing-masing {tipe}, izinkan kami memberikan gambaran umum tentang energi hari ini. Secara keseluruhan, hari ini berenergi {peruntungan_hari.lower()}, dengan warna keberuntungan {warna_hari} dan angka hoki {angka_hari}. {pesan_hari}",
-        f"Mari kita mulai dengan mengenali energi hari ini. Getaran umumnya cenderung {peruntungan_hari.lower()}. Warna yang menuntun keberuntungan adalah {warna_hari}, sementara angka yang membuka pintu fortuna adalah {angka_hari}. {pesan_hari}",
-        f"Energi hari ini terasa {peruntungan_hari.lower()} dan mengalir dengan sangat harmonis. Manfaatkan warna {warna_hari} dan angka {angka_hari} sebagai alat bantu dalam bermeditasi atau menetapkan niat hari ini. {pesan_hari}",
+        f"Sebelum kita masuk ke ramalan masing-masing, ada yang perlu kamu tahu tentang energi besar hari ini. Hari ini energinya {peruntungan_hari.lower()} dan ini bukan hal yang biasa! Warna {warna_hari} adalah kunci keberuntunganmu hari ini, dan angka {angka_hari} bisa menjadi angka paling ajaib yang kamu temui. {pesan_hari} Simpan informasi ini baik-baik!",
+        f"Tonton terus, karena di bagian akhir ada pesan RAHASIA dari semesta yang hanya diperuntukkan bagi yang setia menonton sampai selesai! Tapi sebelum itu, kenali dulu energi hari ini yang luar biasa dahsyat. Getarannya {peruntungan_hari.lower()}, warna hoki {warna_hari}, dan angka keberuntungan {angka_hari}. {pesan_hari}",
+        f"Dan inilah yang membuat hari ini begitu istimewa dan berbeda dari hari-hari biasanya! Energi kosmik hari ini digambarkan sebagai {peruntungan_hari.lower()}, sebuah getaran yang jarang terjadi. Manfaatkan warna {warna_hari} dan angka sakral {angka_hari} sebagai penghubungmu dengan energi semesta. {pesan_hari}",
     ]
 
     tanda_terbaik_intro = [
-        f"Dan {tipe} yang paling bersinar hari ini adalah {tanda_terbaik}. Jika kamu termasuk golongan ini, bersiaplah menerima aliran keberuntungan yang luar biasa sepanjang hari.",
-        f"Fokus istimewa hari ini bersinar pada {tanda_terbaik}. Energi kosmik sedang menyatu dengan getaran bawaan {tanda_terbaik}, sehingga setiap usaha akan mendapat nilai tambah.",
-        f"Dalam hierarki keberuntungan hari ini, {tipe} {tanda_terbaik} menduduki puncak. Ini adalah tanda bahwa semesta sedang berpihak penuh padamu, wahai {tanda_terbaik}.",
+        f"Dan sekarang, saat yang paling ditunggu-tunggu! Siapakah {tipe} yang dipilih semesta sebagai yang paling beruntung hari ini? Jawabannya adalah {tanda_terbaik}! Jika kamu lahir di bawah naungan {tanda_terbaik}, hari ini adalah harimu! Energi terbaik sedang mengalir deras ke arahmu!",
+        f"PENGUMUMAN BESAR! Dari semua {tipe} yang ada, semesta hari ini memilih {tanda_terbaik} sebagai bintang utama! Keberuntungan, rezeki, dan peluang emas semuanya tertuju pada {tanda_terbaik} hari ini. Apakah kamu salah satunya? Jika iya, bersiaplah untuk hari yang luar biasa!",
+        f"Sebelum kita bahas satu per satu, kami harus mengumumkan sesuatu yang mengejutkan! {tipe} {tanda_terbaik} hari ini berada di puncak keberuntungan! Semesta sedang berpihak penuh padamu, wahai {tanda_terbaik}. Tapi tunggu dulu, bagaimana dengan {tipe}-{tipe} lainnya? Simak terus!",
     ]
 
     def ramalan_tanda(nama, r):
-        bintang_kata = {
-            5: "lima bintang keajaiban",
-            4: "empat bintang luar biasa",
-            3: "tiga bintang yang menjanjikan",
-        }
+        bintang_kata = {5: "LUAR BIASA lima bintang", 4: "sangat baik empat bintang", 3: "cukup menjanjikan tiga bintang"}
         bk = bintang_kata.get(r["bintang"], f"{r['bintang']} bintang")
+        level = "SELAMAT" if r["bintang"] >= 4 else "PERHATIAN" if r["bintang"] == 3 else "WASPADA"
         return (
-            f"Sekarang mari kita bahas {tipe} {nama} secara mendalam. "
+            f"{level}! Sekarang mari kita bahas {tipe} {nama}. "
             f"Hari ini kamu mendapatkan rating {bk} dari semesta, dengan peruntungan yang {r['peruntungan'].lower()}. "
             f"{r['afirmasi']} "
-            f"Dalam urusan cinta dan hubungan, {r['cinta'].lower()} "
-            f"Ini adalah waktu yang tepat untuk mengekspresikan perasaan dan mempererat komunikasi. "
-            f"Beralih ke dunia karir dan produktivitas, {r['karir'].lower()} "
-            f"Pertimbangkan untuk mengambil inisiatif baru dan menawarkan ide segar kepada tim. "
-            f"Untuk aspek keuangan dan rezeki, {r['keuangan'].lower()} "
-            f"Bijak dalam mengelola pengeluaran dan jangan ragu mencari peluang tambahan. "
-            f"Dari sisi kesehatan dan vitalitas, {r['kesehatan'].lower()} "
-            f"Luangkan waktu untuk istirahat berkualitas dan jaga pola makan dengan baik. "
-            f"Warna hoki yang membawa keberuntungan untukmu hari ini adalah {r['warna_hoki']}, "
-            f"dan angka yang memancarkan energi terbaik adalah {r['angka_hoki']}."
+            f"Dalam urusan cinta dan hubungan, simaklah ini baik-baik: {r['cinta'].lower()} "
+            f"Jangan abaikan sinyal yang dikirimkan pasanganmu hari ini. "
+            f"Beralih ke dunia karir, ada kabar yang menarik! {r['karir'].lower()} "
+            f"Ini adalah momen yang tepat untuk mengambil langkah berani. "
+            f"Untuk keuangan, dan ini yang paling mengejutkan: {r['keuangan'].lower()} "
+            f"Bijak dalam mengambil keputusan finansial hari ini. "
+            f"Dari sisi kesehatan, semesta berpesan: {r['kesehatan'].lower()} "
+            f"Jaga energimu agar tetap prima sepanjang hari. "
+            f"Dan jangan lupakan kunci hoki hari ini: warna {r['warna_hoki']} dan angka ajaib {r['angka_hoki']}."
         )
 
     penutup = [
-        f"Demikianlah ramalan {tipe} lengkap hari ini, {tgl}, dari channel {NAMA_CHANNEL}. Ingatlah bahwa ramalan adalah panduan positif untuk menjalani hari, namun kekuatan terbesar tetap berada dalam dirimu sendiri. Percayakan dirimu pada proses, tetap bersyukur, dan teruslah bertumbuh. Jangan lupa berikan like jika video ini memberimu semangat, tulis komentarmu di bawah tentang zodiak atau shiomu, dan subscribe agar kamu tidak melewatkan ramalan harian kami. Sampai jumpa besok dengan semangat yang semakin membara.",
-        f"Itulah seluruh ramalan {tipe} untuk hari ini, {tgl}. Kami di channel {NAMA_CHANNEL} berharap setiap kalimat yang kamu dengar menjadi benih positif yang tumbuh dalam hati dan pikiranmu. Like, komentar, dan subscribe adalah bentuk dukungan terbaik untukmu. Sampai jumpa di edisi besok, dan selalu ingat bahwa kamu adalah penulis takdirmu sendiri.",
-        f"Channel {NAMA_CHANNEL} berterima kasih atas kesetiaan dan kepercayaanmu. Ramalan {tipe} hari ini, {tgl}, telah kami sampaikan dengan sepenuh hati. Jadikan setiap kata afirmasi sebagai mantra positif yang menemanimu sepanjang hari. Jangan lupa like, comment, dan subscribe untuk mendapatkan panduan ramalan setiap hari. Sampai jumpa di esok hari yang penuh berkah.",
+        f"Itulah ramalan lengkap {tipe} hari ini, {tgl}, dari {NAMA_CHANNEL}! Luar biasa bukan? Dan inilah pesan RAHASIA dari semesta yang kami janjikan: semesta selalu berpihak pada mereka yang percaya dan terus berusaha. JANGAN lupa klik tombol SUBSCRIBE dan nyalakan lonceng notifikasi sekarang juga! Karena jika kamu tidak subscribe hari ini, kamu berisiko melewatkan ramalan penting yang mungkin akan mengubah hidupmu besok. Sampai jumpa besok dengan ramalan yang lebih mengejutkan!",
+        f"Dan itulah pesan rahasia dari semesta yang kami janjikan di awal tadi! Terima kasih sudah setia menonton {NAMA_CHANNEL} sampai selesai. Kamu adalah yang terpilih! Buktikan dengan klik SUBSCRIBE, nyalakan notifikasi, dan bagikan video ini ke orang-orang terkasihmu agar mereka juga mendapat berkah hari ini. Sampai jumpa besok!",
+        f"WOW! Luar biasa sekali pergerakan energi hari ini! Dan hanya penonton setia {NAMA_CHANNEL} yang mendapatkan bocoran istimewa ini. Jika video ini bermanfaat, berikan LIKE sebagai tanda syukur, tulis {tipe}mu di kolom komentar, dan SUBSCRIBE agar kamu tidak pernah lagi melewatkan satu pun ramalan harian kami. Sampai jumpa besok, dan ingat, keberuntunganmu ada di tanganmu sendiri!",
     ]
 
     judul_pool = [
-        f"Ramalan {tipe} Hari Ini {tgl} - {tanda_terbaik} Bersinar Terang",
-        f"{tipe} {tgl} - Peruntungan {peruntungan_hari} Untuk Semua Tanda",
-        f"Ramalan {tipe} Lengkap {tgl} - Penuh Energi Positif",
-        f"Cek Ramalan {tipe}mu Hari Ini {tgl} - {NAMA_CHANNEL}",
-        f"{tipe} Harian {tgl} - Semua Tanda - Afirmasi dan Inspirasi",
+        f"HATI-HATI! {tipe} Ini Akan Alami Kejutan BESAR Hari Ini {tgl}",
+        f"BOCORAN SEMESTA! {tanda_terbaik} Dipilih Sebagai {tipe} Paling Beruntung {tgl}",
+        f"LUAR BIASA! Rezeki Nomplok Menanti {tipe} Ini Hari Ini {tgl}",
+        f"WASPADA! Ramalan {tipe} Lengkap {tgl} Ada Yang Harus Ekstra Hati-hati!",
+        f"SHOCK! Peruntungan {tipe} Berubah Drastis {tgl} Kamu Masuk Yang Mana?",
+        f"RAHASIA SEMESTA {tgl}: {tipe} {tanda_terbaik} Menerima Energi Terkuat Hari Ini!",
+        f"PERINGATAN KERAS! Beberapa {tipe} Harus Waspada Penuh Hari Ini {tgl}",
+        f"KEJUTAN! Ada {tipe} Yang Rezekinya Mengalir Deras Hari Ini {tgl} Siapa?",
     ]
 
-    opening    = random.choice(openings)
-    intro      = random.choice(intro_hari)
-    terbaik    = random.choice(tanda_terbaik_intro)
-    detail     = "\n\n".join([ramalan_tanda(nama, r) for nama, r in ramalan.items()])
-    penutupan  = random.choice(penutup)
-    judul      = random.choice(judul_pool)
+    opening   = random.choice(openings)
+    intro     = random.choice(intro_hari)
+    terbaik   = random.choice(tanda_terbaik_intro)
+    detail    = "\n\n".join([ramalan_tanda(nama, r) for nama, r in ramalan.items()])
+    penutupan = random.choice(penutup)
+    judul     = random.choice(judul_pool)
 
     narasi_lengkap = (
         f"{opening}\n\n"
@@ -422,7 +403,7 @@ def buat_narasi(info):
     log("[narasi] Memulai pembuatan narasi...")
     prompt = _build_prompt(info)
 
-    # 1. Coba Gemini (model terbaru 2026)
+    # 1. Coba Gemini
     raw = _call_gemini(prompt)
     if raw:
         judul, narasi = _parse_output(raw)
@@ -430,7 +411,7 @@ def buat_narasi(info):
             log(f"[narasi] Narasi via Gemini OK ({len(narasi)} karakter)")
             return judul, narasi
 
-    # 2. Fallback ke Groq (GRATIS & CEPAT)
+    # 2. Fallback Groq
     log("[narasi] Mencoba Groq sebagai fallback ke-2...")
     raw = _call_groq(prompt)
     if raw:
@@ -439,7 +420,7 @@ def buat_narasi(info):
             log(f"[narasi] Narasi via Groq OK ({len(narasi)} karakter)")
             return judul, narasi
 
-    # 3. Fallback ke OpenRouter
+    # 3. Fallback OpenRouter
     log("[narasi] Mencoba OpenRouter sebagai fallback ke-3...")
     raw = _call_openrouter(prompt)
     if raw:
@@ -448,7 +429,7 @@ def buat_narasi(info):
             log(f"[narasi] Narasi via OpenRouter OK ({len(narasi)} karakter)")
             return judul, narasi
 
-    # 4. Fallback lokal (template, selalu berhasil)
+    # 4. Fallback lokal
     log("[narasi] Menggunakan fallback template lokal...")
     judul, narasi = _build_fallback(info)
     log(f"[narasi] Fallback lokal OK ({len(narasi)} karakter)")
