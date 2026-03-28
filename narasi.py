@@ -95,19 +95,18 @@ def _build_prompt(info):
     return (
         f'Kamu adalah narrator video YouTube channel "{NAMA_CHANNEL}" yang ahli membuat konten VIRAL dan CLICKBAIT.\n\n'
         f"INSTRUKSI UTAMA — WAJIB DIIKUTI:\n"
-        f"1. Buat JUDUL yang SANGAT CLICKBAIT, mengandung unsur kejutan, rasa ingin tahu, atau ancaman/peluang besar.\n"
-        f"   Contoh pola judul bagus:\n"
-        f"   - 'HATI-HATI! {tipe} Ini Akan Mengalami Kejutan BESAR Hari Ini!'\n"
-        f"   - 'LUAR BIASA! Rezeki Nomplok Datang Tiba-tiba untuk {tipe} Ini!'\n"
-        f"   - 'WASPADA! 3 {tipe} Ini Harus Ekstra Hati-hati {tgl}'\n"
-        f"   - 'BOCORAN SEMESTA: {tipe} {tanda_terbaik} Dipilih Alam Semesta Hari Ini!'\n"
-        f"   - 'SHOCK! Peruntungan {tipe} Ini Berubah Drastis Mulai Hari Ini!'\n\n"
-        f"2. Narasi harus DRAMATIS, EMOSIONAL, dan MENGHIPNOTIS seperti konten YouTube viral.\n"
-        f"   - Gunakan kalimat pendek dan menghentak di awal\n"
-        f"   - Tambahkan JEDA DRAMATIS: 'Dan yang paling mengejutkan...', 'Tapi tunggu dulu...'\n"
-        f"   - Buat penonton penasaran dengan cliffhanger\n"
-        f"   - Sisipkan ajakan interaksi: 'Tulis di kolom komentar...', 'Tonton sampai habis karena...'\n"
-        f"   - Gunakan kata-kata kuat: LUAR BIASA, MENGEJUTKAN, DAHSYAT, WASPADA, BOCORAN, RAHASIA\n\n"
+        f"1. Buat JUDUL yang SANGAT CLICKBAIT, panjang 85-100 karakter, WAJIB mengandung unsur kejutan/rasa ingin tahu/ancaman/peluang besar.\n"
+        f"   WAJIB mengandung salah satu kata pemicu: HATI-HATI / WASPADA / BOCORAN / SHOCK / RAHASIA / LUAR BIASA / REZEKI NOMPLOK / PERINGATAN\n"
+        f"   WAJIB sebutkan nama {tipe} atau {tanda_terbaik} atau tanggal di dalam judul\n"
+        f"   Contoh judul BAGUS (85-100 karakter):\n"
+        f"   - 'HATI-HATI!! {tipe} {tanda_terbaik} Akan Alami Perubahan BESAR Hari Ini {tgl}, Kamu Siap?'\n"
+        f"   - 'BOCORAN SEMESTA! Rezeki Nomplok Mengalir Deras untuk {tipe} Ini Hari Ini {tgl}!!'\n"
+        f"   - 'SHOCK!! Nasib {tipe} Ini Berubah Drastis {tgl}, Ada Yang Sangat Beruntung Ada Yang Harus Waspada!'\n"
+        f"   - 'RAHASIA TERBONGKAR! Inilah {tipe} Yang Paling Beruntung {tgl}, Nomor 1 Bikin Iri!'\n"
+        f"   - 'WASPADA!! {tipe} Ini Harus Ekstra Hati-hati {tgl}, Jangan Sampai Kamu Tidak Tahu!'\n"
+        f"   - 'LUAR BIASA!! {tipe} {tanda_terbaik} Dipilih Semesta Sebagai Yang Paling Berjaya Hari Ini {tgl}!'\n"
+        f"   - 'PERINGATAN KERAS untuk {tipe} Ini {tgl}!! Semesta Memberi Sinyal yang Tidak Boleh Diabaikan!'\n"
+        f"   - 'REZEKI NOMPLOK Datang Tiba-tiba untuk {tipe} Ini {tgl}!! Siapa Saja yang Beruntung?'\n\n"
         f"DATA RAMALAN {tipe.upper()} HARI INI:\n"
         f"- Tanggal           : {tgl}\n"
         f"- Waktu             : {waktu}\n"
@@ -370,14 +369,18 @@ def _build_fallback(info):
     ]
 
     judul_pool = [
-        f"HATI-HATI! {tipe} Ini Akan Alami Kejutan BESAR Hari Ini {tgl}",
-        f"BOCORAN SEMESTA! {tanda_terbaik} Dipilih Sebagai {tipe} Paling Beruntung {tgl}",
-        f"LUAR BIASA! Rezeki Nomplok Menanti {tipe} Ini Hari Ini {tgl}",
-        f"WASPADA! Ramalan {tipe} Lengkap {tgl} Ada Yang Harus Ekstra Hati-hati!",
-        f"SHOCK! Peruntungan {tipe} Berubah Drastis {tgl} Kamu Masuk Yang Mana?",
-        f"RAHASIA SEMESTA {tgl}: {tipe} {tanda_terbaik} Menerima Energi Terkuat Hari Ini!",
-        f"PERINGATAN KERAS! Beberapa {tipe} Harus Waspada Penuh Hari Ini {tgl}",
-        f"KEJUTAN! Ada {tipe} Yang Rezekinya Mengalir Deras Hari Ini {tgl} Siapa?",
+        f"HATI-HATI!! Ramalan {tipe} Hari Ini {tgl}, Ada Yang Sangat Beruntung dan Ada Yang Harus Waspada!",
+        f"BOCORAN SEMESTA!! {tipe} {tanda_terbaik} Dipilih Jadi Yang Paling Beruntung Hari Ini {tgl}!",
+        f"SHOCK!! Peruntungan {tipe} Berubah Drastis Hari Ini {tgl}, Kamu Masuk Yang Mana? Cek Sekarang!",
+        f"LUAR BIASA!! Rezeki Nomplok Mengalir Deras untuk Beberapa {tipe} Hari Ini {tgl}, Siapa Saja?",
+        f"WASPADA!! Ada {tipe} Yang Harus Ekstra Hati-hati Hari Ini {tgl}, Jangan Sampai Kamu Tidak Tahu!",
+        f"RAHASIA TERBONGKAR! Inilah {tipe} Paling Berjaya dan Paling Perlu Waspada Hari Ini {tgl}!!",
+        f"PERINGATAN KERAS!! Semesta Mengirim Sinyal Besar untuk {tipe} Ini {tgl}, Simak Baik-baik!",
+        f"REZEKI NOMPLOK Datang Tiba-tiba!! Inilah {tipe} Yang Paling Diberkahi Semesta Hari Ini {tgl}!",
+        f"BOCORAN RAMALAN!! {tipe} {tanda_terbaik} Alami Energi Tertinggi {tgl}, Yang Lain Siap-siap Waspada!",
+        f"TAKJUB!! Semesta Pilih {tipe} {tanda_terbaik} Sebagai Bintang Utama Hari Ini {tgl}, Cek Kamu!",
+        f"AWAS JANGAN SKIP!! Ramalan {tipe} Hari Ini {tgl} Ada Kejutan Besar Yang Wajib Kamu Tahu!",
+        f"DAHSYAT!! Pergerakan Energi {tipe} Hari Ini {tgl} Sangat Tidak Biasa, Ada Yang Kaya Mendadak!",
     ]
 
     opening   = random.choice(openings)
